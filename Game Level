@@ -1,0 +1,351 @@
+#include <iostream>
+#include <string.h>
+#include <string>
+#include <vector>
+using namespace std;
+ 
+int inbox[100];
+int space[100];
+int outbox[100];
+int m;
+int input_num;
+int op_num;
+int output_num;
+int space_num;
+int temp;
+string M;
+int j = 0;
+int k = 0;
+ 
+void input(int i){
+    if (j < input_num){
+        temp = inbox[j];
+        j++;
+    }
+    else{ 
+        exit(-1);
+    }
+}  
+ 
+void output(int i){
+    if (temp == 1000){
+        cout << "Error on instruction " << i;
+        exit(-1);
+    }
+    if (k < output_num){
+        outbox[k] = temp;
+        k++;
+    }
+}
+ 
+void copy(string item, int i){
+    int num = stoi(item);
+    if (num >= space_num + 1 || num < 0 || temp == 1000){
+        cout << "Error on instruction " << i;
+        exit(-1);
+    }
+    space[num] = temp; 
+}
+ 
+void add(string item, int i){
+    int num = stoi(item);
+    if (num >= space_num + 1 || space[num] == 1000 || num < 0 || temp == 1000){
+        cout << "Error on instruction " << i;
+        exit(-1);
+    }
+    temp = temp + space[num]; 
+}
+ 
+int jump(string item, int i){
+    int num = stoi(item);
+    if (num > m || num < 0){
+        cout << "Error on instruction " << i;
+        return -1;
+    }
+    return num;
+}
+ 
+void copyfrm(string item, int i){
+    int num = stoi(item);
+    if (num >= space_num + 1 || space[num] == 1000 || num < 0){
+        cout << "Error on instruction " << i;
+        exit(-1);
+    }
+    temp = space[num];
+}
+ 
+void subtraction(string item, int i){
+    int num = stoi(item);
+    if (num >= space_num + 1 || space[num] == 1000 || num < 0 || temp == 1000){
+        cout << "Error on instruction " << i;
+        exit(-1);
+    }
+    temp = temp - space[num];
+}
+ 
+int jumpzero(string item, int i){
+    int jumpm;
+    int num = stoi(item);
+    if (num > m || temp == 1000 || num < 0){
+        cout << "Error on instruction " << i;
+        return -1;
+    }
+    if (temp == 0){
+        jumpm = num;
+    }
+    else{
+        jumpm = 1;
+    }
+    return jumpm;
+}
+ 
+bool checklv1(){
+    for (int i = 0; i < output_num; i++){
+        if (inbox[i] == outbox[i]){
+            return true;
+        }
+    }
+    return false;
+}
+ 
+bool checklv2() {
+    for (int i = 0; i < output_num; i = i + 2) {
+        if (outbox[i] != inbox[i] - inbox[i + 1]) {
+            return false;
+        }
+    }
+    for (int i = 0; i < output_num; i = i + 2) {
+        if (outbox[i+1] != inbox[i + 1] - inbox[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+ 
+bool checklv3(){
+    if (outbox[0] == 7 && outbox[1] == -3){
+        return true;
+    }
+    return false;
+}
+ 
+bool checklv4(){
+    for (int i = 0; i < output_num; i++){
+        if (outbox[i] == inbox[i] * 40){
+            return true;
+        }
+    }
+    return false;
+}
+ 
+int lv1(){
+    inbox[0] = 1;
+    inbox[1] = 2;
+    input_num = 2;
+    op_num = 2;
+    output_num = 2;
+    cin >> m;
+    if (m < 1 || m > 100) return -1;
+    string *M = new string[m];
+    for (int i = 0; i < m; i++){
+        cin >> M[i];
+    }
+    int i = 1;
+    while(i <= m){
+        if (M[i - 1] == "inbox"){
+            input(i);
+        }
+        else if (M[i - 1] == "outbox" && M[i - 2] == "inbox"){
+            output(i);
+        }
+        else{
+            cout << "Error on instruction " << i;
+            return -1;
+        }
+        i++;
+    }
+    if (checklv1()) cout << "Success";
+    else cout << "Fail";
+    delete[] M;
+    return 0;
+}
+ 
+int lv2() {
+    inbox[0] = 3;
+    inbox[1] = 9;
+    inbox[2] = 5;
+    inbox[3] = 1;
+    inbox[4] = -2;
+    inbox[5] = -2;
+    inbox[6] = 9;
+    inbox[7] = -9;
+    input_num = 9;
+    output_num = 8;
+    space_num = 3;
+    cin >> m;
+    if (m < 1 || m > 100) return -1;
+    cin.ignore();
+    vector<string> M(m);
+    for (int i = 0; i < m; i++) {
+        getline(cin, M[i]);
+    }
+    int i = 1;
+    while (i <= m && j < input_num) {
+        string instruction = M[i - 1].substr(0, M[i - 1].find(" "));
+        string arg = M[i - 1].substr(M[i - 1].find(" ") + 1);
+        if (instruction == "inbox") {
+            input(i);  
+        }
+        else if (instruction == "copyto") {
+            copy(arg, i);
+        }
+        else if (instruction == "add") {
+            add(arg, i);
+        }
+        else if (instruction == "outbox") {
+            output(i);
+        }
+        else if (instruction == "jump") {
+            i = jump(arg, i);
+            continue;
+        }
+        else if (instruction == "copyfrom") {
+            copyfrm(arg, i);
+        }
+        else if (instruction == "sub") {
+            subtraction(arg, i);
+        }
+        else if (instruction == "jumpifzero") {
+            i = jumpzero(arg, i);
+            continue;
+        }
+        else {
+            cout << "Error on instruction " << i;
+            return -1;
+        }
+        i++;
+    }
+    if (checklv2()) cout << "Success";
+    else cout << "Fail";
+    return 0;
+}
+ 
+
+int lv3(){
+    inbox[0] = 6;
+    inbox[1] = 2;
+    inbox[2] = 7;
+    inbox[3] = 7;
+    inbox[4] = -9;
+    inbox[5] = 3;
+    inbox[6] = -3;
+    inbox[7] = -3;
+    input_num = 9;
+    output_num = 2;
+    space_num = 3;
+    cin >> m;
+    if (m < 1 || m > 100) return -1;
+    cin.ignore();
+    vector<string> M(m);
+    for (int i = 0; i < m; i++){
+        getline(cin, M[i]);
+    }
+    int i = 1;
+    while(i <= m && j < input_num){
+        string instruction = M[i - 1].substr(0, M[i - 1].find(" "));
+        string arg = M[i - 1].substr(M[i - 1].find(" ") + 1);
+        if (instruction == "inbox"){
+            input(i);
+        }
+        else if (instruction == "copyto"){
+            copy(arg, i);
+        }
+        else if (instruction == "add"){
+            add(arg, i);
+        }
+        else if (instruction == "outbox"){
+            output(i);
+        }
+        else if (instruction == "jump"){
+            i = jump(arg, i);
+            continue;
+        }
+        else if (instruction == "copyfrom"){
+            copyfrm(arg, i);
+        }
+        else if (instruction == "sub"){
+            subtraction(arg, i);
+        }
+        else if (instruction == "jumpifzero"){
+            int jumpm = jumpzero(arg, i);
+            if (jumpm != 1){
+                i = jumpzero(arg, i);
+                continue;
+            }
+        }
+        else{
+            cout << "Error on instruction " << i;
+            return -1;
+        }
+        i++;
+    }
+    if (checklv3()) cout << "Success";
+    else cout << "Fail";
+    return 0;
+}
+ 
+int lv4(){
+    inbox[0] = 3;
+    inbox[1] = -2;
+    inbox[2] = 2;
+    inbox[3] = 0;
+    input_num = 4;
+    op_num = 5;
+    output_num = 4;
+    space_num = 4;
+    cin >> m;
+    cin.ignore();
+    vector<string> M(m);
+    for (int i = 0; i < m; i++){
+        getline(cin, M[i]);
+    }
+    int i = 1;
+    while(i <= m && j < input_num){
+        string instruction = M[i - 1].substr(0, M[i - 1].find(" "));
+        string arg = M[i - 1].substr(M[i - 1].find(" ") + 1);
+        if (instruction == "inbox"){
+            input(i);
+        }
+        else if (instruction == "copyto"){
+            copy(arg, i);
+        }
+        else if (instruction == "add"){
+            add(arg, i);
+        }
+        else if (instruction == "outbox"){
+            output(i);  
+        }
+        else if(instruction == "jump"){
+            i = jump(arg, i);
+            continue;
+        }
+        else{
+            cout << "Error on instruction " << i;
+            return -1;
+        }
+        i++;
+    }
+    if (checklv4()) cout << "Success";
+    else cout << "Fail";
+    return 0;
+}
+ 
+int main(){
+    int x;
+    cin >> x;
+    if (x == 1) lv1();
+    if (x == 2) lv2();
+    if (x == 3) lv3();
+    if (x == 4) lv4();
+    return 0;
+}
