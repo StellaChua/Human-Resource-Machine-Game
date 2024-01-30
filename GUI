@@ -1,0 +1,372 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <iomanip>
+#include <cstring>
+using namespace std;
+
+int chosenLevel;
+int numInstructions;
+vector<string> instructions;
+// 存储进度的文件名
+const string progressFileName = "progress.txt";
+
+// 显示已通过关卡的情况
+void displayProgress(bool levelsPassed[], int size) {
+    ifstream progressFile(progressFileName);
+    if (progressFile.is_open()) {
+        int levelNum = 1;
+        cout << "已通过的关卡情况：" << endl;
+        string line;
+        // 逐行读取进度信息
+        while (getline(progressFile, line) && levelNum <= size) {
+            bool passed = (line == "1");
+            levelsPassed[levelNum - 1] = passed;
+            cout << "关卡 " << levelNum << ": " << (passed ? "已通过" : "未通过") << endl;
+            levelNum++;
+        }
+        progressFile.close();
+    }
+    else {
+        cout << "一共有" << size << "关，目前没有通过任何一关。" << endl;
+    }
+}
+
+// 保存进度到文件
+void saveProgress(const bool levelsPassed[], int size) {
+    ofstream progressFile(progressFileName);
+    if (progressFile.is_open()) {
+        // 保存每个关卡的进度到文件中
+        for (int i = 0; i < size; ++i) {
+            progressFile << (levelsPassed[i] ? "1" : "0") << endl;
+        }
+        progressFile.close();
+    }
+    else {
+        cout << "无法保存通关情况。" << endl;
+    }
+}
+
+//打印游戏界面
+void printGame(const vector<vector<int>>& matrix, const vector<string>& instructions) {
+    string border = "+---+";
+    string line = "|   ";
+    string empty = "|   ";
+    string code = "  ===== CODE =====";
+    string robot[] = {"      @   @", "   -----", "      |@ @|", "        +  ", "   /   \\", "       | | "};
+
+  
+    cout << "      " << border << "      " << border << "                      " << border << "        " << code << endl;
+    cout << "IN    " << "|" << setw(3) << matrix[0][0] << "|" << "      " << "|" << setw(3) << matrix[0][1]  << "|" << "                      " << "|" << setw(3) << matrix[0][2] << "|" << "        "<< instructions[0] << endl;
+    cout << "      " << border << "      " << border << "                      " << border << "        " << instructions[1] << endl;
+    cout << "      " << border  << robot[0] << "                      " << border << "        " << instructions[2] << endl;
+    cout << "      " << "|" << setw(3) << matrix[1][0] << "|" << "   " << robot[1] << "                      " << "|" << setw(3) << matrix[1][1] << "|" << "        " << instructions[3] << endl;
+    if (instructions.size() > 4) {
+        cout << "      " << border  << robot[2] << "                      " << border << "        " << instructions[4] << endl;
+    } else {
+        cout << "      " << border  << robot[2] << "                      " << border << "        " << endl;
+    }
+    if (instructions.size() > 5){
+        cout << "      " << border  << robot[3] << "                      " << border << "        " << instructions[5] << endl;
+    } else{
+        cout << "      " << border  << robot[3] << "                      " << border << "        " << endl;
+    }
+    if (instructions.size() > 6){
+        cout << "      " << "|" << setw(3) << matrix[2][0] << "|" << "   " << robot[4] << "                      " << "|" << setw(3) << matrix[2][1] << "|" << "        " << instructions[6] << endl;
+    } else{
+        cout << "      " << "|" << setw(3) << matrix[2][0] << "|" << "   " << robot[4] << "                      " << "|" << setw(3) << matrix[2][1] << "|" << "        " << endl;
+    }
+    if (instructions.size() > 7){
+        cout << "      " << border << robot[5] << "                      " << border << "        " << instructions[7] << endl;
+    } else{
+        cout << "      " << border << robot[5] << "                      " << border << "        " << endl;
+    }
+    if (instructions.size() > 8){
+        cout << "      " << border << "                                 " << border << "        " << instructions[8] << endl;
+    } else{
+        cout << "      " << border << "                                 " << border << "        " << endl;
+    }
+    if (instructions.size() > 9){
+        cout << "      " << "|" << setw(3) << matrix[3][0] << "|" << "      " << border << " " << border << " " << border << " " << border << "    " << "|" << setw(3) << matrix[3][2] << "|" << "        " << instructions[9] << endl;
+    } else{
+        cout << "      " << "|" << setw(3) << matrix[3][0] << "|" << "      " << border << " " << border << " " << border << " " << border << "    " << "|" << setw(3) << matrix[3][2] << "|" << "        " << endl;
+    }
+    if (instructions.size() > 10){
+        cout << "      " << border << "      " << "|" << setw(3) << matrix[4][0] << "|" << " " << "|" << setw(3) << matrix[4][1] << "|" << " " <<  "|" << setw(3) << matrix[4][2] << "|" << " " << "|" << setw(3) << matrix[4][3] << "|" << "    " << border << "        " << instructions[10] << endl;
+    } else{
+        cout << "      " << border << "      " << "|" << setw(3) << matrix[4][0] << "|" << " " << "|" << setw(3) << matrix[4][1] << "|" << " " <<  "|" << setw(3) << matrix[4][2] << "|" << " " << "|" << setw(3) << matrix[4][3] << "|" << "    " << border << "        " << endl;
+    }
+    if (instructions.size() > 11){
+        cout << "      " << border << "      " << border << " " << border << " " << border << " " << border << "                 " << instructions[11] << endl;
+    } else{
+        cout << "      " << border << "      " << border << " " << border << " " << border << " " << border << endl;
+    }
+    if (instructions.size() > 12){
+        cout << "      " << "|" << setw(3) << matrix[5][0] << "|" <<  "                                              " << instructions[12] << endl;
+    } else{
+        cout << "      " << "|" << setw(3) << matrix[5][0] << "|" <<  "      " << endl;
+    }
+    cout << "      " << border << endl;
+    cout << "      " << border << endl;
+    cout << "      " << "|" << setw(3) << matrix[6][0] << "|" << endl;
+    cout << "      " << border << endl;
+    cout << "      " << border << endl;
+    cout << "      " << "|" << setw(3) << matrix[7][0] << "|" << endl;
+    cout << "      " << border << endl;
+}
+
+// 模拟机器人执行指令
+void runRobot(vector<vector<int>>& matrix, int row, int col, const vector<string>& instructions) {
+    if (row >= 0 && row < matrix.size() && col >= 0 && col < matrix[0].size()) {
+    int i = 0;
+    
+    // 模拟执行每条指令
+    for (const string& instruction : instructions) {
+        cout << "执行指令: " << instruction << endl;
+        int k = 0;
+            while (i < numInstructions){
+                if (instructions[i] == "inbox"){
+                    if (k < matrix.size()){
+                        matrix[0][1] = matrix[k][0];
+                    }
+                    else{
+                        break;
+                    }
+                    k++;
+                }
+                else if (instructions[i] == "outbox"){
+                    matrix[0][2] = matrix[0][1];
+                }
+                else if (instructions[i] == "copyto 0"){
+                    matrix[4][0] = matrix[0][1];
+                }
+                else if (instructions[i] == "copyto 1"){
+                    matrix[4][1] = matrix[0][1];
+                }
+                else if (instructions[i] == "copyto 2"){
+                    matrix[4][2] = matrix[0][1];
+                }
+                else if (instructions[i] == "copyto 3"){
+                    matrix[4][3] = matrix[0][1];
+                }
+                else if (instructions[i] == "copyfrom 0"){
+                    matrix[0][1] = matrix[4][0];
+                }
+                else if (instructions[i] == "copyfrom 1"){
+                    matrix[0][1] = matrix[4][1];
+                }
+                else if (instructions[i] == "sub 0"){
+                    matrix[0][1] = matrix[0][1] - matrix[4][0];
+                }
+                else if (instructions[i] == "sub 2"){
+                    matrix[0][1] = matrix[0][1] - matrix[4][2];
+                }
+                else if (instructions[i] == "copyfrom 2"){
+                    matrix[0][1] = matrix[4][2];
+                }
+                else if (instructions[i] == "sub 1"){
+                    matrix[0][1] = matrix[0][1] - matrix[4][1];
+                }
+                else if (instructions[i] == "jump 1"){
+                    i = 0;
+                    continue;
+                }
+                else if (instructions[i] == "jumpifzero 7"){
+                    if (matrix[0][1] == 0){
+                        i = 6;
+                        continue;
+                    }
+                }
+                else if (instructions[i] == "add 0"){
+                    matrix[0][1] = matrix[0][1] + matrix[4][0];
+                }
+                else if (instructions[i] == "add 1"){
+                    matrix[0][1] = matrix[0][1] + matrix[4][1];
+                }
+                else if (instructions[i] == "add 2"){
+                    matrix[0][1] = matrix[0][1] + matrix[4][2];
+                }
+                else if (instructions[i] == "add 3"){
+                    matrix[0][1] = matrix[0][1] + matrix[4][3];
+                }
+                else{
+                    cout << "指令有误!";
+                    exit(-1);
+                }
+                i++;
+            }
+    }
+}
+}
+
+
+// 从键盘读取指令
+vector<string> readInstructionsFromKeyboard() {
+    // 读取指令数量
+    cout << "请输入指令数量 M: ";
+    cin >> numInstructions;
+    cin.ignore(); // 清除输入缓冲区
+
+    vector<string> instructions;
+    cout << "请输入 " << numInstructions << " 条指令:" << endl;
+    // 从用户输入读取每条指令
+    for (int i = 0; i < numInstructions; ++i) {
+        string instruction;
+        getline(cin, instruction);
+        instructions.push_back(instruction);
+    }
+    return instructions;
+}
+
+
+// 从文件读取指令
+vector<string> readInstructionsFromFile(const string& filePath) {
+    ifstream inputFile(filePath);
+    if (!inputFile.is_open()) {
+        cerr << "无法打开文件或文件不存在！" << endl;
+        return vector<string>();
+    }
+
+    inputFile >> numInstructions;
+    inputFile.ignore(); // 忽略换行符
+
+    string instruction;
+    // 从文件中读取指令
+    for (int i = 0; i < numInstructions; ++i) {
+        getline(inputFile, instruction);
+        instructions.push_back(instruction);
+    }
+
+    inputFile.close();
+    return instructions;
+}
+
+// 从键盘或文件读取机器人指令
+vector<string> readRobotInstructions() {
+    char inputChoice;
+    cout << "请选择输入方式：\n"
+        << "键盘输入 - 输入 'K'\n"
+        << "文件输入 - 输入 'F'\n"
+        << "选择: ";
+    cin >> inputChoice;
+
+    if (inputChoice == 'K' || inputChoice == 'k') {
+        vector<string> instructions = readInstructionsFromKeyboard();
+        return instructions;
+    }
+    else if (inputChoice == 'F' || inputChoice == 'f') {
+        string filePath;
+        cout << "请输入机器人程序文件的路径: ";
+        cin >> filePath;
+        vector<string> instructions = readInstructionsFromFile(filePath);
+        if (!instructions.empty()) {
+            return instructions;
+        }
+    }
+    else {
+        cout << "无效的选择！" << endl;
+    }
+
+    // 返回空的指令列表表示失败或无效选择
+    return vector<string>();
+}
+
+
+// 主函数
+int main() {
+    const int numLevels = 4;
+    bool levelsPassed[numLevels] = { false };
+    vector<vector<int>> matrix(8, vector<int>(8, 0));
+    // 游戏循环
+    while (true) {
+        cout << "\n===== 选择关卡 =====" << endl;
+        displayProgress(levelsPassed, numLevels);
+        cout << "\n请输入要进行的关卡（1-" << numLevels << "），输入 0 退出游戏：";
+
+        cin >> chosenLevel;
+
+        if (chosenLevel == 0) {
+            cout << "退出游戏。" << endl;
+            break;
+        }
+        else if (chosenLevel < 1 || chosenLevel > numLevels) {
+            cout << "请输入有效的关卡号（1-" << numLevels << "）！" << endl;
+            cin.clear();
+            cin.ignore(numeric_limits<streamsize>::max(), '\n');
+            continue;
+        }
+        else if (chosenLevel > 1 && !levelsPassed[chosenLevel - 2]) {
+            cout << "请先通过前置关卡！" << endl;
+            continue;
+        }
+
+        cout << "\n关卡信息：当前为关卡 " << chosenLevel << endl << endl << endl;
+        if (chosenLevel == 1){
+            matrix[0][0] = 1;
+            matrix[1][0] = 2;
+            cout << "任务：取出输入序列上的每个积木放入输出序列中" << endl;
+            cout << "积木：1,2" << endl;
+            cout << "可用指令：inbox, outbox" << endl;
+            cout << "可用空地：0" << endl;
+        }
+        else if (chosenLevel == 2){
+            matrix[0][0] = 3;
+            matrix[1][0] = 9;
+            matrix[2][0] = 5;
+            matrix[3][0] = 1;
+            matrix[4][0] = -2;
+            matrix[5][0] = -2;
+            matrix[6][0] = 9;
+            matrix[7][0] = -9;
+            cout << "任务：对于输入序列中的每两个东西，先把第1个减去第2个，并把结果放在输出序列中，然后把第2个减去第1个，再把结果放在输出序列中，重复" << endl;
+            cout << "积木：3,9,5,1,-2,-2,9,-9" << endl;
+            cout << "可用指令：inbox, outbox, copyfrom, copyto, add, sub, jump, jumpifzero" << endl;
+            cout << "可用空地：3" << endl;
+        }
+        else if (chosenLevel == 3){
+            matrix[0][0] = 6;
+            matrix[1][0] = 2;
+            matrix[2][0] = 7;
+            matrix[3][0] = 7;
+            matrix[4][0] = -9;
+            matrix[5][0] = 3;
+            matrix[6][0] = -3;
+            matrix[7][0] = -3;
+            cout << "任务：从输入序列中依次取2个数字，如果相等则将其中一个输出，否则扔掉。重复这个过程直到输入传送带为空" << endl;
+            cout << "积木：6,2,7,7,-9,3,-3,-3" << endl;
+            cout << "可用指令：inbox, outbox, copyfrom, copyto, add, sub, jump, jumpifzero" << endl;
+            cout << "可用空地：3" << endl;
+        }
+        else if (chosenLevel == 4){
+            matrix[0][0] = 3;
+            matrix[1][0] = -2;
+            matrix[2][0] = 2;
+            matrix[3][0] = 0;
+            cout << "任务：将输入序列中的每个数乘以40并输出到传送带中" << endl;
+            cout << "积木：3,-2,2,0" << endl;
+            cout << "可用指令：inbox, outbox, copyfrom, copyto, add, sub, jump, jumpifzero" << endl;
+            cout << "可用空地：4" << endl;
+        }
+        cout << "\n";
+        vector<string> robotInstructions = readRobotInstructions();
+
+        if (!robotInstructions.empty()) {
+            cout << "开始执行机器人程序..." << endl;
+            runRobot(matrix, 1, 1, robotInstructions);
+        }
+        else {
+            cout << "无效的机器人程序指令！" << endl;
+        }
+
+        printGame(matrix, robotInstructions);
+
+        levelsPassed[chosenLevel - 1] = true;
+
+        saveProgress(levelsPassed, numLevels);
+
+        cout << "游戏完成！返回选择关卡页面。" << endl;
+    }
+
+    return 0;
+}
